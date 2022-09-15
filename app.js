@@ -10,19 +10,7 @@ class Book {
 //UI Class: Handle UI Tasks
 class UI {
   static displayBooks() {
-    const StoredBooks = [
-      {
-        title: "Book One",
-        author: "John Snow",
-        isbn: "123456789",
-      },
-      {
-        title: "Book Two",
-        author: "John Week",
-        isbn: "987654321",
-      },
-    ];
-    const books = StoredBooks;
+    const books = Store.getBooks();
     books.forEach((book) => UI.addBookToList(book));
   }
   static addBookToList(book) {
@@ -59,6 +47,31 @@ class UI {
 }
 
 //Store Class: Handle Storage
+class Store {
+  static getBooks() {
+    let books;
+    if (Boolean(localStorage.getItem("books"))) {
+      books = JSON.parse(localStorage.getItem("books"));
+    } else {
+      books = [];
+    }
+    return books;
+  }
+  static addBook(book) {
+    const books = Store.getBooks();
+    books.push(book);
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+  static removeBook(isbn) {
+    const books = Store.getBooks();
+    books.forEach((book, index) => {
+      if (book.isbn === isbn) {
+        books.splice(index, 1);
+      }
+    });
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+}
 
 //Event: Display Books
 document.addEventListener("DOMContentLoaded", UI.displayBooks);
@@ -81,6 +94,8 @@ document.getElementById("book-form").addEventListener("submit", (e) => {
     const book = new Book(title, author, isbn);
     // Add Book to UI
     UI.addBookToList(book);
+    // Add book to store
+    Store.addBook(book);
     // Show success message
     UI.showAlert("Book added", "success");
     // Clear fields
@@ -91,8 +106,10 @@ document.getElementById("book-form").addEventListener("submit", (e) => {
 //Event: Remove a Book
 
 document.getElementById("book-list").addEventListener("click", (e) => {
+  // Remove book from UI
   UI.deleteBook(e.target);
+  //   Remove book from Store
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
   // Show success message
   UI.showAlert("Book Removed", "success");
 });
-
